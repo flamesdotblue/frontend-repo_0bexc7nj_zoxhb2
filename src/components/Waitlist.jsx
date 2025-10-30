@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Input = ({ label, type = 'text', value, onChange, placeholder }) => (
   <label className="block">
@@ -15,15 +15,23 @@ const Input = ({ label, type = 'text', value, onChange, placeholder }) => (
 );
 
 const Waitlist = () => {
-  const [form, setForm] = useState({ name: '', email: '', age: '', interest: '', occupation: '' });
+  const [form, setForm] = useState({ email: '' });
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    try {
+      const already = localStorage.getItem('aame_waitlist_submitted') === 'true';
+      setSubmitted(already);
+    } catch {}
+  }, []);
 
   const onSubmit = (e) => {
     e.preventDefault();
     try {
-      const entries = JSON.parse(localStorage.getItem('aame-waitlist') || '[]');
+      const entries = JSON.parse(localStorage.getItem('aame_waitlist') || '[]');
       entries.push({ ...form, createdAt: new Date().toISOString() });
-      localStorage.setItem('aame-waitlist', JSON.stringify(entries));
+      localStorage.setItem('aame_waitlist', JSON.stringify(entries));
+      localStorage.setItem('aame_waitlist_submitted', 'true');
       setSubmitted(true);
     } catch (err) {
       console.error(err);
@@ -33,11 +41,11 @@ const Waitlist = () => {
   if (submitted) {
     return (
       <section id="waitlist" className="bg-black text-white py-20">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
+        <div className="mx-auto max-w-3xl px-6 md:px-10 text-center">
           <h3 className="text-3xl font-semibold">You're on the list ✅</h3>
           <p className="mt-2 text-white/70">Thanks for joining the Aame waitlist. We'll reach out with early access and updates.</p>
           <button
-            onClick={() => setSubmitted(false)}
+            onClick={() => { localStorage.setItem('aame_waitlist_submitted', 'false'); setSubmitted(false); }}
             className="mt-6 inline-flex items-center rounded-md bg-white text-black px-5 py-2.5 text-sm font-medium hover:bg-white/90"
           >
             Add another response
@@ -49,26 +57,17 @@ const Waitlist = () => {
 
   return (
     <section id="waitlist" className="bg-black text-white py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl px-6 md:px-10">
         <div className="text-center">
           <h3 className="text-3xl font-semibold">Be first to try Aame</h3>
           <p className="mt-2 text-white/70">Sign up and we’ll reach out with early access and updates.</p>
         </div>
 
-        <form onSubmit={onSubmit} className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Jane Doe" />
-          <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="jane@aame.com" />
-          <Input label="Age" type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} placeholder="24" />
-          <Input label="Interested For" value={form.interest} onChange={(e) => setForm({ ...form, interest: e.target.value })} placeholder="Study prep, Upskilling..." />
-          <div className="sm:col-span-2">
-            <Input label="Occupation" value={form.occupation} onChange={(e) => setForm({ ...form, occupation: e.target.value })} placeholder="Student, Data Analyst, Faculty..." />
-          </div>
-
-          <div className="sm:col-span-2 mt-2">
-            <button type="submit" className="w-full inline-flex items-center justify-center rounded-md bg-white text-black px-5 py-3 text-sm font-medium hover:bg-white/90">
-              Join Waitlist
-            </button>
-          </div>
+        <form onSubmit={onSubmit} className="mt-8 grid grid-cols-1 gap-4">
+          <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ email: e.target.value })} placeholder="you@domain.com" />
+          <button type="submit" className="w-full inline-flex items-center justify-center rounded-md bg-white text-black px-5 py-3 text-sm font-medium hover:bg-white/90">
+            Join Waitlist
+          </button>
         </form>
       </div>
     </section>
